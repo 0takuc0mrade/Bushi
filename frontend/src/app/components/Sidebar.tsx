@@ -11,6 +11,7 @@ const navItems = [
   { label: 'Security', icon: 'gpp_maybe', href: '/report' },
   { label: 'Vendor Portal', icon: 'verified_user', href: '/verify' },
   { label: 'Global Explorer', icon: 'public', href: '/explorer' },
+  { label: 'Vault', icon: 'account_balance_wallet', href: '/wallet' },
   { label: 'Settings', icon: 'settings', href: '#' },
 ];
 

@@ -5,6 +5,7 @@ import { createHash } from 'crypto';
 
 export const PROGRAM_ID = new PublicKey(bushiIdl.address);
 export const CORE_PROGRAM_ID = new PublicKey('CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d');
+export const DEVNET_USDC_MINT = new PublicKey('4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU');
 
 // Helper to hash IMEI consistently
 export function hashImei(imei: string): number[] {
@@ -41,6 +42,26 @@ export async function fetchAllDevices(program: Program) {
   } catch (error) {
     console.error("Error fetching all devices:", error);
     return [];
+  }
+}
+
+// Fetch USDC Balance
+export async function fetchUsdcBalance(connection: Connection, walletPubkey: PublicKey): Promise<number> {
+  try {
+    const response = await connection.getParsedTokenAccountsByOwner(walletPubkey, {
+      mint: DEVNET_USDC_MINT,
+    });
+    if (response.value.length === 0) return 0;
+    
+    let totalUsdc = 0;
+    for (const accountInfo of response.value) {
+      const amountStr = accountInfo.account.data.parsed.info.tokenAmount.uiAmountString;
+      totalUsdc += parseFloat(amountStr || '0');
+    }
+    return totalUsdc;
+  } catch (error) {
+    console.error("Error fetching USDC balance:", error);
+    return 0;
   }
 }
 
