@@ -26,13 +26,9 @@ test-ledger/
 .anchor/
 
 # Keys / Secrets
-*.json
-!package.json
-!tsconfig.json
-!package-lock.json
-!anchor/bushi/Anchor.toml
 id.json
 keypair.json
+*.keypair.json
 
 # Screen Folders (ignored per request)
 *_desktop/
