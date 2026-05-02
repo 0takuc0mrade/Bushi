@@ -10,6 +10,7 @@ const navItems = [
   { label: 'Register Device', icon: 'add_to_home_screen', href: '/register' },
   { label: 'Security', icon: 'gpp_maybe', href: '/report' },
   { label: 'Vendor Portal', icon: 'verified_user', href: '/verify' },
+  { label: 'Global Explorer', icon: 'public', href: '/explorer' },
   { label: 'Settings', icon: 'settings', href: '#' },
 ];
 

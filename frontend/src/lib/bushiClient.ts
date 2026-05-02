@@ -34,6 +34,16 @@ export async function fetchDevicesForOwner(program: Program, ownerPubkey: Public
   }
 }
 
+export async function fetchAllDevices(program: Program) {
+  try {
+    const devices = await (program.account as any).deviceState.all();
+    return devices;
+  } catch (error) {
+    console.error("Error fetching all devices:", error);
+    return [];
+  }
+}
+
 // Build the register transaction (unsigned) and return it + the asset keypair
 export async function buildRegisterDeviceTx(
   program: Program,
