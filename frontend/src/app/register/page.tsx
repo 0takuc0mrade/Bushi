@@ -6,7 +6,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import { useWallets } from '@privy-io/react-auth/solana';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { AnchorProvider } from '@coral-xyz/anchor';
-import { getBushiProgram, buildRegisterDeviceTx } from '@/lib/bushiClient';
+import { getBushiProgram, buildRegisterDeviceTx, fetchDeviceByImei } from '@/lib/bushiClient';
 import { useRouter } from 'next/navigation';
 import ThemeToggle from '../components/ThemeToggle';
 
@@ -51,6 +51,15 @@ export default function Register() {
       };
       const provider = new AnchorProvider(connection, dummyWallet as any, { commitment: 'confirmed' });
       const program = getBushiProgram(provider);
+
+      // Check if device is already registered
+      const deviceCheck = await fetchDeviceByImei(program, imei);
+      if (deviceCheck.exists) {
+        alert('This device (IMEI) is already registered on Bushi.');
+        setLoading(false);
+        return;
+      }
+
       const { transaction } = await buildRegisterDeviceTx(program, connection, imei, pubkey);
       const serializedTx = transaction.serialize({ requireAllSignatures: false });
       const { signedTransaction } = await (signingWallet as any).signTransaction({
