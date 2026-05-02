@@ -300,9 +300,9 @@ export default function WalletPage() {
           <span className="material-symbols-outlined mb-1">public</span>
           <span>Explorer</span>
         </Link>
-        <Link className="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 hover:text-[#48A9A6] dark:hover:text-[#5BC4C1] transition-all" href="#">
-          <span className="material-symbols-outlined mb-1">contact_support</span>
-          <span>Support</span>
+        <Link className="flex flex-col items-center justify-center text-[#48A9A6] dark:text-[#5BC4C1] bg-[#48A9A6]/10 dark:bg-[#5BC4C1]/10 rounded-xl px-4 py-1" href="/wallet">
+          <span className="material-symbols-outlined mb-1">account_balance_wallet</span>
+          <span>Vault</span>
         </Link>
       </nav>
     </>

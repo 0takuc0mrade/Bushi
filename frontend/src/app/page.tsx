@@ -248,9 +248,9 @@ export default function Home() {
           <span className="material-symbols-outlined mb-1">public</span>
           <span>Explorer</span>
         </Link>
-        <Link className="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 hover:text-[#48A9A6] dark:hover:text-[#5BC4C1] transition-all" href="#">
-          <span className="material-symbols-outlined mb-1">contact_support</span>
-          <span>Support</span>
+        <Link className="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 hover:text-[#48A9A6] dark:hover:text-[#5BC4C1] transition-all" href="/wallet">
+          <span className="material-symbols-outlined mb-1">account_balance_wallet</span>
+          <span>Vault</span>
         </Link>
       </nav>
     </>
