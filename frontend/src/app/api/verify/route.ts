@@ -71,6 +71,7 @@ export async function GET(request: Request) {
         status: deviceState.isStolen ? 'stolen' : 'clean',
         owner: deviceState.owner.toBase58(),
         recoveryContact: deviceState.isStolen ? deviceState.recoveryContact : null, // Only expose contact if stolen
+        bountyLamports: deviceState.bountyLamports ? deviceState.bountyLamports.toNumber() : 0,
       });
     } catch {
       // Account not found = not registered

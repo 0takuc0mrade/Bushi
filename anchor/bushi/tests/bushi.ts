@@ -95,19 +95,17 @@ describe("bushi", () => {
     expect(asset.owner).to.equal(buyer.publicKey.toBase58());
   });
 
-  it.skip("Throws the Killswitch (Marks as Stolen & Freezes)", async () => {
+  it("Throws the Killswitch (Marks as Stolen & Freezes)", async () => {
     // We need to use the current owner (buyer) to update the status.
-    // Wait, the test uses provider.wallet by default, but the owner is now the buyer.
-    // We should change the owner back or use the buyer as the signer for this test.
-    // Since we used transferDeviceNft, the buyer is the new owner. Let's update the status with buyer.
-    
+    const bountyLamports = new anchor.BN(50000000); // 0.05 SOL
     const tx = await program.methods
-      .updateDeviceStatus(true, "owner@example.com")
+      .updateDeviceStatus(true, "owner@example.com", bountyLamports)
       .accounts({
         owner: buyer.publicKey,
         deviceState: deviceStatePda,
         asset: assetKeypair.publicKey,
         coreProgram: "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d",
+        finder: null,
         systemProgram: SystemProgram.programId,
       } as any)
       .signers([buyer])
@@ -116,26 +114,35 @@ describe("bushi", () => {
     const deviceState = await program.account.deviceState.fetch(deviceStatePda);
     expect(deviceState.isStolen).to.be.true;
     expect(deviceState.recoveryContact).to.equal("owner@example.com");
+    expect(deviceState.bountyLamports.toNumber()).to.equal(50000000);
+    
+    // Check balance of PDA
+    const balance = await provider.connection.getBalance(deviceStatePda);
+    expect(balance).to.be.greaterThanOrEqual(50000000);
   });
 
-  it.skip("Fails a raw Metaplex Core transfer when Frozen (The Exploit Attempt)", async () => {
-    // We configure Umi to act as the buyer trying to transfer the asset directly
-    const buyerUmiKeypair = umi.eddsa.createKeypairFromSecretKey(buyer.secretKey);
-    umi.use(keypairIdentity(buyerUmiKeypair));
-
-    const thief = Keypair.generate();
-
-    try {
-      await transferV1(umi, {
-        asset: assetKeypair.publicKey.toBase58() as any,
-        newOwner: thief.publicKey.toBase58() as any,
-      }).sendAndConfirm(umi);
-
-      expect.fail("The raw Metaplex transfer should have failed because the asset is frozen!");
-    } catch (err: any) {
-      expect(err.message).to.match(/ExtensionError|0x1d|AssetFrozen|custom program error/);
-      // MplCore freeze errors manifest as Extension errors due to the Delegate
-      console.log("Exploit successfully thwarted by Freeze Delegate.");
-    }
+  it("Marks as Found and Releases Bounty", async () => {
+    const finder = Keypair.generate();
+    const balanceBefore = await provider.connection.getBalance(finder.publicKey);
+    
+    const tx = await program.methods
+      .updateDeviceStatus(false, null, new anchor.BN(0))
+      .accounts({
+        owner: buyer.publicKey,
+        deviceState: deviceStatePda,
+        asset: assetKeypair.publicKey,
+        coreProgram: "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d",
+        finder: finder.publicKey,
+        systemProgram: SystemProgram.programId,
+      } as any)
+      .signers([buyer])
+      .rpc();
+      
+    const deviceState = await program.account.deviceState.fetch(deviceStatePda);
+    expect(deviceState.isStolen).to.be.false;
+    expect(deviceState.bountyLamports.toNumber()).to.equal(0);
+    
+    const balanceAfter = await provider.connection.getBalance(finder.publicKey);
+    expect(balanceAfter - balanceBefore).to.equal(50000000);
   });
 });

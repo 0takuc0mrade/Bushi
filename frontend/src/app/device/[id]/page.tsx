@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { useWallets } from '@privy-io/react-auth/solana';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { AnchorProvider } from '@coral-xyz/anchor';
 import { getBushiProgram, fetchDevicesForOwner, buildTransferDeviceTx, buildMarkFoundTx, hashImei } from '@/lib/bushiClient';
 import { useRouter, useParams } from 'next/navigation';
@@ -65,12 +65,15 @@ export default function DeviceDetails() {
           setAllDevices(devices);
           if (devices[deviceIndex]) {
             setDevice(devices[deviceIndex]);
-            // Load bounty from localStorage
-            const hash = devices[deviceIndex].account.hashedImei;
-            const bountyKey = `bounty_${Array.from(hash.slice(0, 8) as number[]).join('')}`;
-            const stored = localStorage.getItem(bountyKey);
-            if (stored) {
-              try { setBountyData(JSON.parse(stored)); } catch {}
+            // Read bounty from on-chain state
+            const bountyLamports = devices[deviceIndex].account.bountyLamports || 0;
+            if (bountyLamports > 0) {
+              setBountyData({
+                amount: bountyLamports / LAMPORTS_PER_SOL,
+                currency: 'SOL'
+              });
+            } else {
+              setBountyData(null);
             }
           }
         } catch (error) {
@@ -100,7 +103,11 @@ export default function DeviceDetails() {
       const program = getBushiProgram(provider);
 
       const hashedImei = Array.from(device.account.hashedImei as number[]);
-      const tx = await buildMarkFoundTx(program, connection, hashedImei, ownerPubkey);
+      let finderPubkey: PublicKey | null = null;
+      if (!foundMyself && finderAddress) {
+        finderPubkey = new PublicKey(finderAddress);
+      }
+      const tx = await buildMarkFoundTx(program, connection, hashedImei, ownerPubkey, finderPubkey);
       const serializedTx = tx.serialize({ requireAllSignatures: false });
 
       setFoundStage('Awaiting wallet signature...');
@@ -116,17 +123,12 @@ export default function DeviceDetails() {
       });
       await connection.confirmTransaction(txSig, 'confirmed');
 
-      // Release bounty (simulated)
+      // Release bounty (simulated visually, but on-chain real)
       if (bountyData && !foundMyself && finderAddress) {
         setFoundStage('Releasing bounty to finder...');
         await new Promise(resolve => setTimeout(resolve, 1500));
-        console.log(`Bounty of ${bountyData.amount} USDC released to ${finderAddress} (simulated)`);
+        console.log(`Bounty of ${bountyData.amount} SOL released to ${finderAddress}`);
       }
-
-      // Clear bounty from localStorage
-      const hash = device.account.hashedImei;
-      const bountyKey = `bounty_${Array.from(hash.slice(0, 8) as number[]).join('')}`;
-      localStorage.removeItem(bountyKey);
 
       setFoundStage('Device recovered successfully!');
       await new Promise(resolve => setTimeout(resolve, 800));
@@ -360,8 +362,8 @@ export default function DeviceDetails() {
               {bountyData ? (
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-3xl font-bold text-[#1e1b17] dark:text-stone-100">${bountyData.amount} <span className="text-lg font-normal text-stone-400">USDC</span></p>
-                    <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">Locked in escrow • Released to finder on recovery</p>
+                    <p className="text-3xl font-bold text-[#1e1b17] dark:text-stone-100">{bountyData.amount} <span className="text-lg font-normal text-stone-400">SOL</span></p>
+                    <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">Locked in on-chain escrow • Released to finder on recovery</p>
                   </div>
                   <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
                     <span className="material-symbols-outlined text-amber-600 dark:text-amber-400">lock</span>
@@ -456,7 +458,7 @@ export default function DeviceDetails() {
               <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 rounded-xl p-4 mb-6">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">Bounty to Release</span>
-                  <span className="text-lg font-bold text-[#1e1b17] dark:text-stone-100">${bountyData.amount} USDC</span>
+                  <span className="text-lg font-bold text-[#1e1b17] dark:text-stone-100">{bountyData.amount} SOL</span>
                 </div>
 
                 <label className="flex items-center gap-2 mb-3 cursor-pointer">

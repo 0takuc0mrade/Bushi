@@ -1,4 +1,4 @@
-import { AnchorProvider, Program, Idl, setProvider } from '@coral-xyz/anchor';
+import { AnchorProvider, Program, Idl, setProvider, BN } from '@coral-xyz/anchor';
 import { Connection, PublicKey, SystemProgram, Keypair, Transaction } from '@solana/web3.js';
 import bushiIdl from './idl/bushi.json';
 import { createHash } from 'crypto';
@@ -109,7 +109,8 @@ export async function buildMarkStolenTx(
   connection: Connection,
   imei: string,
   walletPubkey: PublicKey,
-  recoveryContact: string
+  recoveryContact: string,
+  bountyLamports: number
 ): Promise<Transaction> {
   const hashedImei = hashImei(imei);
   
@@ -121,12 +122,13 @@ export async function buildMarkStolenTx(
   const deviceState = await (program.account as any).deviceState.fetch(deviceStatePda);
 
   const tx = await program.methods
-    .updateDeviceStatus(true, recoveryContact)
+    .updateDeviceStatus(true, recoveryContact, new BN(bountyLamports))
     .accounts({
       owner: walletPubkey,
       deviceState: deviceStatePda,
       asset: deviceState.assetId,
       coreProgram: CORE_PROGRAM_ID,
+      finder: null,
       systemProgram: SystemProgram.programId,
     } as any)
     .transaction();
@@ -143,7 +145,8 @@ export async function buildMarkFoundTx(
   program: Program,
   connection: Connection,
   hashedImei: number[],
-  walletPubkey: PublicKey
+  walletPubkey: PublicKey,
+  finderPubkey: PublicKey | null
 ): Promise<Transaction> {
   const [deviceStatePda] = PublicKey.findProgramAddressSync(
     [Buffer.from("device"), Buffer.from(hashedImei)],
@@ -153,12 +156,13 @@ export async function buildMarkFoundTx(
   const deviceState = await (program.account as any).deviceState.fetch(deviceStatePda);
 
   const tx = await program.methods
-    .updateDeviceStatus(false, null)
+    .updateDeviceStatus(false, null, new BN(0))
     .accounts({
       owner: walletPubkey,
       deviceState: deviceStatePda,
       asset: deviceState.assetId,
       coreProgram: CORE_PROGRAM_ID,
+      finder: finderPubkey,
       systemProgram: SystemProgram.programId,
     } as any)
     .transaction();

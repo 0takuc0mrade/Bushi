@@ -151,6 +151,11 @@
           "address": "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
         },
         {
+          "name": "finder",
+          "writable": true,
+          "optional": true
+        },
+        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
@@ -165,6 +170,10 @@
           "type": {
             "option": "string"
           }
+        },
+        {
+          "name": "bounty_lamports",
+          "type": "u64"
         }
       ]
     }
@@ -223,6 +232,10 @@
             "type": {
               "option": "string"
             }
+          },
+          {
+            "name": "bounty_lamports",
+            "type": "u64"
           },
           {
             "name": "bump",

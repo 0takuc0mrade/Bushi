@@ -23,7 +23,7 @@ startup_wait = 200000
 
 [test.validator]
 bind_address = "127.0.0.1"
-url = "https://mainnet.helius-rpc.com/?api-key=YOUR_HELIUS_API_KEY"
+url = "https://api.mainnet-beta.solana.com"
 
 [[test.validator.clone]]
 address = "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"

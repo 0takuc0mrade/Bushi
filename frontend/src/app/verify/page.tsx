@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import ThemeToggle from '../components/ThemeToggle';
-import { hashImei } from '@/lib/bushiClient';
+import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 
 export default function VerifyDevice() {
   const [imei, setImei] = useState('');
@@ -31,12 +31,13 @@ export default function VerifyDevice() {
           },
           pda: data.pda
         });
-        // Load bounty from localStorage
-        const hashedImeiArr = hashImei(imei);
-        const bountyKey = `bounty_${hashedImeiArr.slice(0, 8).join('')}`;
-        const stored = localStorage.getItem(bountyKey);
-        if (stored) {
-          try { setBountyData(JSON.parse(stored)); } catch {}
+        // Load bounty from on-chain response
+        const lamports = data.bountyLamports || 0;
+        if (lamports > 0) {
+          setBountyData({
+            amount: lamports / LAMPORTS_PER_SOL,
+            currency: 'SOL'
+          });
         } else {
           setBountyData(null);
         }

@@ -23,7 +23,7 @@ pub mod bushi {
         instructions::transfer_device::handler(ctx)
     }
 
-    pub fn update_device_status(ctx: Context<UpdateDeviceStatus>, is_stolen: bool, recovery_contact: Option<String>) -> Result<()> {
-        instructions::update_status::handler(ctx, is_stolen, recovery_contact)
+    pub fn update_device_status(ctx: Context<UpdateDeviceStatus>, is_stolen: bool, recovery_contact: Option<String>, bounty_lamports: u64) -> Result<()> {
+        instructions::update_status::handler(ctx, is_stolen, recovery_contact, bounty_lamports)
     }
 }

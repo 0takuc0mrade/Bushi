@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useMemo } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { useWallets } from '@privy-io/react-auth/solana';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { AnchorProvider } from '@coral-xyz/anchor';
 import { getBushiProgram, buildMarkStolenTx, hashImei } from '@/lib/bushiClient';
 import { useRouter } from 'next/navigation';
@@ -56,7 +56,11 @@ export default function ReportStolen() {
       };
       const provider = new AnchorProvider(connection, dummyWallet as any, { commitment: 'confirmed' });
       const program = getBushiProgram(provider);
-      const transaction = await buildMarkStolenTx(program, connection, imei, pubkey, email || 'none');
+      
+      const parsedBounty = parseFloat(bountyAmount.replace(/,/g, '')) || 0;
+      const bountyLamports = Math.floor(parsedBounty * LAMPORTS_PER_SOL);
+      
+      const transaction = await buildMarkStolenTx(program, connection, imei, pubkey, email || 'none', bountyLamports);
       const serializedTx = transaction.serialize({ requireAllSignatures: false });
 
       setLoadingStage('Awaiting wallet signature...');
@@ -72,23 +76,6 @@ export default function ReportStolen() {
       });
       await connection.confirmTransaction(txSig, 'confirmed');
       console.log('Device marked as stolen successfully:', txSig);
-
-      // Save bounty to localStorage if set
-      const parsedBounty = parseFloat(bountyAmount.replace(/,/g, ''));
-      if (parsedBounty > 0) {
-        setLoadingStage('Locking funds in escrow...');
-        // Simulate escrow delay for UX
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        const hashedImeiArr = hashImei(imei);
-        const bountyKey = `bounty_${hashedImeiArr.slice(0, 8).join('')}`;
-        localStorage.setItem(bountyKey, JSON.stringify({
-          amount: parsedBounty,
-          currency: 'USDC',
-          ownerWallet: solanaWalletAddress,
-          timestamp: Date.now(),
-        }));
-        console.log('Bounty escrowed (simulated):', parsedBounty, 'USDC');
-      }
 
       setLoadingStage('Device locked successfully!');
       await new Promise(resolve => setTimeout(resolve, 800));
@@ -209,16 +196,16 @@ export default function ReportStolen() {
           </div>
           <div className="p-6 space-y-4">
             <p className="text-stone-500 dark:text-stone-400 text-sm leading-relaxed">
-              Incentivize recovery by locking a USDC bounty in escrow. If someone finds and returns your device, the bounty is automatically released to their wallet.
+              Incentivize recovery by locking a SOL bounty in escrow. If someone finds and returns your device, the bounty is automatically released to their wallet.
             </p>
             <div className="space-y-1">
-              <label className="font-semibold text-sm text-stone-600 dark:text-stone-300 block" htmlFor="bounty-amount">Bounty Amount (USDC)</label>
+              <label className="font-semibold text-sm text-stone-600 dark:text-stone-300 block" htmlFor="bounty-amount">Bounty Amount (SOL)</label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-stone-400 dark:text-stone-500">$</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-stone-400 dark:text-stone-500">◎</span>
                 <input
                   className="block w-full pl-10 pr-4 py-4 bg-[#faf2ea] dark:bg-stone-950 border-transparent rounded-xl focus:ring-2 focus:ring-[#48a9a6] focus:border-[#48a9a6] focus:bg-white dark:focus:bg-stone-800 text-[#1e1b17] dark:text-stone-100 text-xl font-bold placeholder:text-stone-400 dark:placeholder-stone-500 placeholder:font-normal transition-all outline-none"
                   id="bounty-amount"
-                  placeholder="e.g. 50"
+                  placeholder="e.g. 0.05"
                   type="text"
                   value={bountyAmount}
                   onChange={(e) => setBountyAmount(e.target.value.replace(/[^0-9.,]/g, ''))}

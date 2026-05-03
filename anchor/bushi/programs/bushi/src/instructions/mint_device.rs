@@ -40,6 +40,7 @@ pub fn handler(ctx: Context<MintDeviceNft>, hashed_imei: [u8; 32]) -> Result<()>
     device_state.hashed_imei = hashed_imei;
     device_state.is_stolen = false;
     device_state.recovery_contact = None;
+    device_state.bounty_lamports = 0;
     device_state.bump = ctx.bumps.device_state;
 
     // Attach the Freeze Delegate Plugin so the DeviceState PDA has absolute control
