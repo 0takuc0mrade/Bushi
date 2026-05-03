@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 import Providers from './providers'
@@ -9,6 +9,16 @@ const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-jakart
 export const metadata: Metadata = {
   title: 'VaultID - Device Protection Dashboard',
   description: 'Decentralized anti-theft mobile device tracking application on the Solana blockchain.',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#FDFCFB' },
+    { media: '(prefers-color-scheme: dark)', color: '#1c1917' },
+  ],
 }
 
 export default function RootLayout({

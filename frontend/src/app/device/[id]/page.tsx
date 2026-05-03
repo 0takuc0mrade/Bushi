@@ -26,7 +26,7 @@ export default function DeviceDetails() {
 
   // Mark as Found state
   const [showFoundModal, setShowFoundModal] = useState(false);
-  const [finderAddress, setFinderAddress] = useState('');
+  const [finderEmail, setFinderEmail] = useState('');
   const [foundMyself, setFoundMyself] = useState(false);
   const [markingFound, setMarkingFound] = useState(false);
   const [foundStage, setFoundStage] = useState('');
@@ -104,8 +104,16 @@ export default function DeviceDetails() {
 
       const hashedImei = Array.from(device.account.hashedImei as number[]);
       let finderPubkey: PublicKey | null = null;
-      if (!foundMyself && finderAddress) {
-        finderPubkey = new PublicKey(finderAddress);
+      if (!foundMyself && finderEmail) {
+        setFoundStage('Resolving finder email...');
+        const res = await fetch(`/api/resolve-email?email=${encodeURIComponent(finderEmail)}`);
+        const data = await res.json();
+        
+        if (!res.ok) {
+          throw new Error(data.error || 'Failed to resolve email address.');
+        }
+        
+        finderPubkey = new PublicKey(data.walletAddress);
       }
       const tx = await buildMarkFoundTx(program, connection, hashedImei, ownerPubkey, finderPubkey);
       const serializedTx = tx.serialize({ requireAllSignatures: false });
@@ -124,10 +132,10 @@ export default function DeviceDetails() {
       await connection.confirmTransaction(txSig, 'confirmed');
 
       // Release bounty (simulated visually, but on-chain real)
-      if (bountyData && !foundMyself && finderAddress) {
+      if (bountyData && !foundMyself && finderPubkey) {
         setFoundStage('Releasing bounty to finder...');
         await new Promise(resolve => setTimeout(resolve, 1500));
-        console.log(`Bounty of ${bountyData.amount} SOL released to ${finderAddress}`);
+        console.log(`Bounty of ${bountyData.amount} SOL released to ${finderPubkey.toBase58()}`);
       }
 
       setFoundStage('Device recovered successfully!');
@@ -135,7 +143,8 @@ export default function DeviceDetails() {
       router.push('/');
     } catch (error) {
       console.error('Mark as found failed:', error);
-      alert('Failed to mark device as found. Check console for details.');
+      setFoundStage(`Error: ${error instanceof Error ? error.message : 'Failed to mark device as found.'}`);
+      await new Promise(resolve => setTimeout(resolve, 4000));
     } finally {
       setMarkingFound(false);
       setFoundStage('');
@@ -473,14 +482,15 @@ export default function DeviceDetails() {
 
                 {!foundMyself && (
                   <div className="space-y-1">
-                    <label className="font-semibold text-sm text-stone-600 dark:text-stone-300 block">Finder&apos;s Solana Address</label>
+                    <label className="font-semibold text-sm text-stone-600 dark:text-stone-300 block">Finder&apos;s Email Address</label>
                     <div className="relative">
-                      <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500">account_balance_wallet</span>
+                      <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500">mail</span>
                       <input
-                        className="block w-full pl-12 pr-4 py-3 bg-[#faf2ea] dark:bg-stone-950 border-transparent rounded-xl focus:ring-2 focus:ring-[#48a9a6] focus:border-[#48a9a6] focus:bg-white dark:focus:bg-stone-800 text-[#1e1b17] dark:text-stone-100 placeholder:text-stone-400 dark:placeholder-stone-500 transition-all font-mono text-sm outline-none"
-                        placeholder="e.g. AjNXABj8D2GHZY8Bf..."
-                        value={finderAddress}
-                        onChange={(e) => setFinderAddress(e.target.value)}
+                        className="block w-full pl-12 pr-4 py-3 bg-[#faf2ea] dark:bg-stone-950 border-transparent rounded-xl focus:ring-2 focus:ring-[#48a9a6] focus:border-[#48a9a6] focus:bg-white dark:focus:bg-stone-800 text-[#1e1b17] dark:text-stone-100 placeholder:text-stone-400 dark:placeholder-stone-500 transition-all text-sm outline-none"
+                        placeholder="e.g. hero@example.com"
+                        type="email"
+                        value={finderEmail}
+                        onChange={(e) => setFinderEmail(e.target.value)}
                       />
                     </div>
                   </div>
@@ -497,7 +507,7 @@ export default function DeviceDetails() {
               </button>
               <button
                 onClick={handleMarkFound}
-                disabled={markingFound || (!foundMyself && !!bountyData && !finderAddress)}
+                disabled={markingFound || (!foundMyself && !!bountyData && !finderEmail)}
                 className="px-6 py-3 bg-[#137333] hover:bg-[#0d5a27] text-white font-semibold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50"
               >
                 {markingFound ? foundStage || 'Processing...' : 'Confirm Recovery'}
