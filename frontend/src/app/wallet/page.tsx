@@ -93,11 +93,11 @@ export default function WalletPage() {
               <Link href="/" className="hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors p-2 rounded-full active:scale-95 duration-150 flex items-center justify-center">
                 <span className="material-symbols-outlined text-[#48A9A6] dark:text-[#5BC4C1]">arrow_back</span>
               </Link>
-              <h1 className="font-semibold tracking-tight text-[#1e1b17] dark:text-stone-100">Bushi Vault</h1>
+              <h1 className="font-semibold tracking-tight text-[#1e1b17] dark:text-stone-100">VaultID</h1>
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              <div className="text-xl font-bold text-[#48A9A6] dark:text-[#5BC4C1]">Bushi</div>
+              <div className="text-xl font-bold text-[#48A9A6] dark:text-[#5BC4C1]">VaultID</div>
             </div>
           </div>
         </header>
@@ -107,7 +107,7 @@ export default function WalletPage() {
 
           {/* Desktop Header */}
           <div className="hidden md:block mb-8">
-            <h1 className="text-[32px] font-bold text-[#1e1b17] dark:text-stone-100 mb-2">Bushi Vault</h1>
+            <h1 className="text-[32px] font-bold text-[#1e1b17] dark:text-stone-100 mb-2">VaultID</h1>
             <p className="text-stone-500 dark:text-stone-400 text-lg">Manage your funds and top up your wallet to pay for on-chain transactions.</p>
           </div>
 

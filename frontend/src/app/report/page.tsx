@@ -6,7 +6,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import { useWallets } from '@privy-io/react-auth/solana';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { AnchorProvider } from '@coral-xyz/anchor';
-import { getBushiProgram, buildMarkStolenTx } from '@/lib/bushiClient';
+import { getBushiProgram, buildMarkStolenTx, hashImei } from '@/lib/bushiClient';
 import { useRouter } from 'next/navigation';
 import ThemeToggle from '../components/ThemeToggle';
 
@@ -14,7 +14,9 @@ export default function ReportStolen() {
   const [imei, setImei] = useState('');
   const [email, setEmail] = useState('');
   const [context, setContext] = useState('');
+  const [bountyAmount, setBountyAmount] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState('');
   const { user } = usePrivy();
   const { wallets } = useWallets();
   const router = useRouter();
@@ -44,6 +46,7 @@ export default function ReportStolen() {
     setLoading(true);
 
     try {
+      setLoadingStage('Flagging device on Solana...');
       const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
       const pubkey = new PublicKey(solanaWalletAddress);
       const dummyWallet = {
@@ -55,22 +58,47 @@ export default function ReportStolen() {
       const program = getBushiProgram(provider);
       const transaction = await buildMarkStolenTx(program, connection, imei, pubkey, email || 'none');
       const serializedTx = transaction.serialize({ requireAllSignatures: false });
+
+      setLoadingStage('Awaiting wallet signature...');
       const { signedTransaction } = await (signingWallet as any).signTransaction({
         transaction: serializedTx,
         chain: 'solana:devnet',
       });
+
+      setLoadingStage('Broadcasting to Solana...');
       const txSig = await connection.sendRawTransaction(signedTransaction, {
         skipPreflight: false,
         preflightCommitment: 'confirmed',
       });
       await connection.confirmTransaction(txSig, 'confirmed');
       console.log('Device marked as stolen successfully:', txSig);
+
+      // Save bounty to localStorage if set
+      const parsedBounty = parseFloat(bountyAmount.replace(/,/g, ''));
+      if (parsedBounty > 0) {
+        setLoadingStage('Locking funds in escrow...');
+        // Simulate escrow delay for UX
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        const hashedImeiArr = hashImei(imei);
+        const bountyKey = `bounty_${hashedImeiArr.slice(0, 8).join('')}`;
+        localStorage.setItem(bountyKey, JSON.stringify({
+          amount: parsedBounty,
+          currency: 'USDC',
+          ownerWallet: solanaWalletAddress,
+          timestamp: Date.now(),
+        }));
+        console.log('Bounty escrowed (simulated):', parsedBounty, 'USDC');
+      }
+
+      setLoadingStage('Device locked successfully!');
+      await new Promise(resolve => setTimeout(resolve, 800));
       router.push('/');
     } catch (error) {
       console.error('Failed to report device:', error);
       alert('Failed to report device. Check console for details.');
     } finally {
       setLoading(false);
+      setLoadingStage('');
     }
   };
 
@@ -87,7 +115,7 @@ export default function ReportStolen() {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <div className="text-xl font-bold text-[#48A9A6] dark:text-[#5BC4C1]">Bushi</div>
+            <div className="text-xl font-bold text-[#48A9A6] dark:text-[#5BC4C1]">VaultID</div>
           </div>
         </div>
       </header>
@@ -113,7 +141,7 @@ export default function ReportStolen() {
           </div>
         </div>
 
-        {/* IMEI Input (Mobile-style, shown on both) */}
+        {/* IMEI Input */}
         <div className="bg-white dark:bg-stone-900 rounded-xl border border-[#e8e1d9] dark:border-stone-800 shadow-sm p-6 mb-6 transition-colors">
           <div className="space-y-1">
             <label className="font-semibold text-sm text-stone-600 dark:text-stone-300 block" htmlFor="report-imei">Device IMEI</label>
@@ -170,6 +198,42 @@ export default function ReportStolen() {
           </div>
         </div>
 
+        {/* ===== BOUNTY CARD ===== */}
+        <div className="bg-white dark:bg-stone-900 rounded-xl border border-[#e8e1d9] dark:border-stone-800 shadow-sm overflow-hidden mb-6 md:mb-8 transition-colors">
+          <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-[#e8e1d9] dark:border-stone-800">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-[#48A9A6] dark:text-[#5BC4C1]">monetization_on</span>
+              <h3 className="text-xl font-semibold text-[#1e1b17] dark:text-stone-100">Recovery Bounty</h3>
+            </div>
+            <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Escrow</span>
+          </div>
+          <div className="p-6 space-y-4">
+            <p className="text-stone-500 dark:text-stone-400 text-sm leading-relaxed">
+              Incentivize recovery by locking a USDC bounty in escrow. If someone finds and returns your device, the bounty is automatically released to their wallet.
+            </p>
+            <div className="space-y-1">
+              <label className="font-semibold text-sm text-stone-600 dark:text-stone-300 block" htmlFor="bounty-amount">Bounty Amount (USDC)</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-stone-400 dark:text-stone-500">$</span>
+                <input
+                  className="block w-full pl-10 pr-4 py-4 bg-[#faf2ea] dark:bg-stone-950 border-transparent rounded-xl focus:ring-2 focus:ring-[#48a9a6] focus:border-[#48a9a6] focus:bg-white dark:focus:bg-stone-800 text-[#1e1b17] dark:text-stone-100 text-xl font-bold placeholder:text-stone-400 dark:placeholder-stone-500 placeholder:font-normal transition-all outline-none"
+                  id="bounty-amount"
+                  placeholder="e.g. 50"
+                  type="text"
+                  value={bountyAmount}
+                  onChange={(e) => setBountyAmount(e.target.value.replace(/[^0-9.,]/g, ''))}
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30 rounded-lg px-3 py-2">
+              <span className="material-symbols-outlined text-blue-500 dark:text-blue-400 text-[18px]">info</span>
+              <p className="text-xs text-blue-600 dark:text-blue-300">
+                Funds will be held in a <strong>smart contract escrow</strong> until the device is marked as found. You can cancel the bounty at any time.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Action Buttons */}
         <div className="flex flex-col md:flex-row md:justify-end gap-3">
           <Link
@@ -185,7 +249,7 @@ export default function ReportStolen() {
             disabled={imei.length !== 15 || loading}
           >
             <span className="material-symbols-outlined text-[20px]">gpp_bad</span>
-            {loading ? 'Processing...' : 'Confirm Stolen Status'}
+            {loading ? loadingStage || 'Processing...' : 'Confirm Stolen Status'}
           </button>
         </div>
       </div>

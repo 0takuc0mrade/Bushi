@@ -69,7 +69,7 @@ export default function Explorer() {
             </h1>
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              <div className="text-xl font-bold text-[#48A9A6] dark:text-[#5BC4C1]">Bushi</div>
+              <div className="text-xl font-bold text-[#48A9A6] dark:text-[#5BC4C1]">VaultID</div>
             </div>
           </div>
         </header>
@@ -79,7 +79,7 @@ export default function Explorer() {
           
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-stone-100 mb-2">Network Activity</h1>
-            <p className="text-gray-500 dark:text-stone-400">Live view of all devices cryptographically secured by Bushi.</p>
+            <p className="text-gray-500 dark:text-stone-400">Live view of all devices cryptographically secured by VaultID.</p>
           </div>
 
           {loading ? (
@@ -105,7 +105,7 @@ export default function Explorer() {
                   <thead>
                     <tr className="bg-gray-50 dark:bg-stone-800/50 text-xs font-semibold text-gray-500 dark:text-stone-400 uppercase tracking-wider">
                       <th className="px-6 py-4 border-b border-gray-100 dark:border-stone-800">Asset</th>
-                      <th className="px-6 py-4 border-b border-gray-100 dark:border-stone-800">Bushi ID (Hash)</th>
+                      <th className="px-6 py-4 border-b border-gray-100 dark:border-stone-800">VaultID (Hash)</th>
                       <th className="px-6 py-4 border-b border-gray-100 dark:border-stone-800">Owner</th>
                       <th className="px-6 py-4 border-b border-gray-100 dark:border-stone-800">Status</th>
                     </tr>

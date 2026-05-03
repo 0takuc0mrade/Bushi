@@ -7,7 +7,7 @@ import ClientLayout from './components/ClientLayout'
 const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-jakarta' })
 
 export const metadata: Metadata = {
-  title: 'Bushi - Device Protection Dashboard',
+  title: 'VaultID - Device Protection Dashboard',
   description: 'Decentralized anti-theft mobile device tracking application on the Solana blockchain.',
 }
 

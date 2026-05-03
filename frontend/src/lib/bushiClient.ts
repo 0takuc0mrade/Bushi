@@ -138,6 +138,38 @@ export async function buildMarkStolenTx(
   return tx;
 }
 
+// Build the mark-found transaction (unsigned) — unfreezes the NFT
+export async function buildMarkFoundTx(
+  program: Program,
+  connection: Connection,
+  hashedImei: number[],
+  walletPubkey: PublicKey
+): Promise<Transaction> {
+  const [deviceStatePda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("device"), Buffer.from(hashedImei)],
+    program.programId
+  );
+
+  const deviceState = await (program.account as any).deviceState.fetch(deviceStatePda);
+
+  const tx = await program.methods
+    .updateDeviceStatus(false, null)
+    .accounts({
+      owner: walletPubkey,
+      deviceState: deviceStatePda,
+      asset: deviceState.assetId,
+      coreProgram: CORE_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+    } as any)
+    .transaction();
+
+  tx.feePayer = walletPubkey;
+  const { blockhash } = await connection.getLatestBlockhash('confirmed');
+  tx.recentBlockhash = blockhash;
+
+  return tx;
+}
+
 // Build transfer device transaction
 export async function buildTransferDeviceTx(
   program: Program,

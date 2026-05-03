@@ -6,7 +6,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import { useWallets } from '@privy-io/react-auth/solana';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { AnchorProvider } from '@coral-xyz/anchor';
-import { getBushiProgram, fetchDevicesForOwner, buildTransferDeviceTx } from '@/lib/bushiClient';
+import { getBushiProgram, fetchDevicesForOwner, buildTransferDeviceTx, buildMarkFoundTx, hashImei } from '@/lib/bushiClient';
 import { useRouter, useParams } from 'next/navigation';
 import ThemeToggle from '../../components/ThemeToggle';
 
@@ -23,6 +23,14 @@ export default function DeviceDetails() {
   const [buyerAddress, setBuyerAddress] = useState('');
   const [transferring, setTransferring] = useState(false);
   const [allDevices, setAllDevices] = useState<any[]>([]);
+
+  // Mark as Found state
+  const [showFoundModal, setShowFoundModal] = useState(false);
+  const [finderAddress, setFinderAddress] = useState('');
+  const [foundMyself, setFoundMyself] = useState(false);
+  const [markingFound, setMarkingFound] = useState(false);
+  const [foundStage, setFoundStage] = useState('');
+  const [bountyData, setBountyData] = useState<{ amount: number; currency: string } | null>(null);
 
   const solanaWalletAddress = useMemo(() => {
     if (!user?.linkedAccounts) return null;
@@ -57,6 +65,13 @@ export default function DeviceDetails() {
           setAllDevices(devices);
           if (devices[deviceIndex]) {
             setDevice(devices[deviceIndex]);
+            // Load bounty from localStorage
+            const hash = devices[deviceIndex].account.hashedImei;
+            const bountyKey = `bounty_${Array.from(hash.slice(0, 8) as number[]).join('')}`;
+            const stored = localStorage.getItem(bountyKey);
+            if (stored) {
+              try { setBountyData(JSON.parse(stored)); } catch {}
+            }
           }
         } catch (error) {
           console.error('Failed to load device:', error);
@@ -67,6 +82,64 @@ export default function DeviceDetails() {
     }
     loadDevice();
   }, [solanaWalletAddress, deviceIndex]);
+
+  const handleMarkFound = async () => {
+    if (!signingWallet || !solanaWalletAddress || !device) return;
+    setMarkingFound(true);
+
+    try {
+      setFoundStage('Unfreezing device on Solana...');
+      const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
+      const ownerPubkey = new PublicKey(solanaWalletAddress);
+      const dummyWallet = {
+        publicKey: ownerPubkey,
+        signTransaction: async (tx: any) => tx,
+        signAllTransactions: async (txs: any) => txs,
+      };
+      const provider = new AnchorProvider(connection, dummyWallet as any, { commitment: 'confirmed' });
+      const program = getBushiProgram(provider);
+
+      const hashedImei = Array.from(device.account.hashedImei as number[]);
+      const tx = await buildMarkFoundTx(program, connection, hashedImei, ownerPubkey);
+      const serializedTx = tx.serialize({ requireAllSignatures: false });
+
+      setFoundStage('Awaiting wallet signature...');
+      const { signedTransaction } = await (signingWallet as any).signTransaction({
+        transaction: serializedTx,
+        chain: 'solana:devnet',
+      });
+
+      setFoundStage('Broadcasting to Solana...');
+      const txSig = await connection.sendRawTransaction(signedTransaction, {
+        skipPreflight: false,
+        preflightCommitment: 'confirmed',
+      });
+      await connection.confirmTransaction(txSig, 'confirmed');
+
+      // Release bounty (simulated)
+      if (bountyData && !foundMyself && finderAddress) {
+        setFoundStage('Releasing bounty to finder...');
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        console.log(`Bounty of ${bountyData.amount} USDC released to ${finderAddress} (simulated)`);
+      }
+
+      // Clear bounty from localStorage
+      const hash = device.account.hashedImei;
+      const bountyKey = `bounty_${Array.from(hash.slice(0, 8) as number[]).join('')}`;
+      localStorage.removeItem(bountyKey);
+
+      setFoundStage('Device recovered successfully!');
+      await new Promise(resolve => setTimeout(resolve, 800));
+      router.push('/');
+    } catch (error) {
+      console.error('Mark as found failed:', error);
+      alert('Failed to mark device as found. Check console for details.');
+    } finally {
+      setMarkingFound(false);
+      setFoundStage('');
+    }
+  };
+
 
   const handleTransfer = async () => {
     if (!buyerAddress || !signingWallet || !solanaWalletAddress || !device) return;
@@ -167,7 +240,7 @@ export default function DeviceDetails() {
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              <div className="text-xl font-bold text-[#48A9A6] dark:text-[#5BC4C1]">Bushi</div>
+              <div className="text-xl font-bold text-[#48A9A6] dark:text-[#5BC4C1]">VaultID</div>
             </div>
           </div>
         </header>
@@ -182,7 +255,7 @@ export default function DeviceDetails() {
               </div>
               <div>
                 <div className="flex items-center gap-3">
-                  <h1 className="text-2xl md:text-[32px] font-bold text-[#1e1b17] dark:text-stone-100">Bushi Device</h1>
+                  <h1 className="text-2xl md:text-[32px] font-bold text-[#1e1b17] dark:text-stone-100">VaultID Device</h1>
                   <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
                     device.account.isStolen ? 'bg-[#FCE8E6] dark:bg-[#ba1a1a] text-[#C5221F] dark:text-white' : 'bg-[#E6F4EA] dark:bg-[#137333] text-[#137333] dark:text-white'
                   }`}>
@@ -194,17 +267,27 @@ export default function DeviceDetails() {
               </div>
             </div>
             <div className="flex gap-3">
-              <Link href="/report" className="px-4 py-2 border border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-300 font-semibold rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors text-sm">
-                Report Stolen
-              </Link>
-              {!device.account.isStolen && (
+              {device.account.isStolen ? (
                 <button
-                  onClick={() => setShowTransferModal(true)}
-                  className="px-4 py-2 bg-[#48A9A6] hover:bg-[#3a8a87] text-white font-semibold rounded-lg transition-colors text-sm flex items-center gap-2"
+                  onClick={() => setShowFoundModal(true)}
+                  className="px-4 py-2 bg-[#137333] hover:bg-[#0d5a27] text-white font-semibold rounded-lg transition-colors text-sm flex items-center gap-2"
                 >
-                  <span className="material-symbols-outlined text-[18px]">swap_horiz</span>
-                  Transfer Ownership
+                  <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                  Mark as Found
                 </button>
+              ) : (
+                <>
+                  <Link href="/report" className="px-4 py-2 border border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-300 font-semibold rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors text-sm">
+                    Report Stolen
+                  </Link>
+                  <button
+                    onClick={() => setShowTransferModal(true)}
+                    className="px-4 py-2 bg-[#48A9A6] hover:bg-[#3a8a87] text-white font-semibold rounded-lg transition-colors text-sm flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">swap_horiz</span>
+                    Transfer Ownership
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -263,6 +346,32 @@ export default function DeviceDetails() {
               </div>
             </div>
           </div>
+
+          {/* ===== BOUNTY CARD (stolen devices only) ===== */}
+          {device.account.isStolen && (
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 rounded-xl border border-amber-200 dark:border-amber-800/30 shadow-sm p-6 mt-6 transition-colors">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-amber-600 dark:text-amber-400 text-[28px]">monetization_on</span>
+                  <h3 className="font-semibold text-[#1e1b17] dark:text-stone-100">Recovery Bounty</h3>
+                </div>
+                <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Escrow</span>
+              </div>
+              {bountyData ? (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-3xl font-bold text-[#1e1b17] dark:text-stone-100">${bountyData.amount} <span className="text-lg font-normal text-stone-400">USDC</span></p>
+                    <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">Locked in escrow • Released to finder on recovery</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-amber-600 dark:text-amber-400">lock</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-stone-500 dark:text-stone-400 text-sm">No bounty was set for this device. You can report it stolen again with a bounty to incentivize recovery.</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -283,7 +392,7 @@ export default function DeviceDetails() {
             </div>
 
             <p className="text-stone-500 dark:text-stone-400 mb-6 leading-relaxed">
-              You are about to transfer the device <strong className="text-[#1e1b17] dark:text-stone-200">Bushi Device ({getBushiId()})</strong>. This action will permanently remove it from your account.
+              You are about to transfer the device <strong className="text-[#1e1b17] dark:text-stone-200">VaultID Device ({getBushiId()})</strong>. This action will permanently remove it from your account.
             </p>
 
             <div className="space-y-2 mb-6">
@@ -318,6 +427,79 @@ export default function DeviceDetails() {
               >
                 {transferring ? 'Transferring...' : 'Send Transfer Invite'}
                 {!transferring && <span className="material-symbols-outlined text-[18px]">send</span>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== MARK AS FOUND MODAL ===== */}
+      {showFoundModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-sm" onClick={() => setShowFoundModal(false)}></div>
+          <div className="relative bg-white dark:bg-stone-900 rounded-2xl shadow-2xl border border-transparent dark:border-stone-800 w-full max-w-lg p-8 transition-colors">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-[#137333] dark:text-[#81c995]">check_circle</span>
+                <h2 className="text-xl font-bold text-[#1e1b17] dark:text-stone-100">Mark Device as Found</h2>
+              </div>
+              <button onClick={() => setShowFoundModal(false)} className="p-1 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 dark:text-stone-400 rounded-full transition-colors">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <p className="text-stone-500 dark:text-stone-400 mb-6 leading-relaxed">
+              This will unfreeze the device NFT and restore full transferability. The device status will return to <strong className="text-[#137333] dark:text-[#81c995]">Active</strong>.
+            </p>
+
+            {bountyData && (
+              <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 rounded-xl p-4 mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">Bounty to Release</span>
+                  <span className="text-lg font-bold text-[#1e1b17] dark:text-stone-100">${bountyData.amount} USDC</span>
+                </div>
+
+                <label className="flex items-center gap-2 mb-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={foundMyself}
+                    onChange={(e) => setFoundMyself(e.target.checked)}
+                    className="w-4 h-4 rounded border-stone-300 dark:border-stone-600 text-[#48A9A6] focus:ring-[#48A9A6]"
+                  />
+                  <span className="text-sm text-stone-600 dark:text-stone-300">I found it myself — no payout needed</span>
+                </label>
+
+                {!foundMyself && (
+                  <div className="space-y-1">
+                    <label className="font-semibold text-sm text-stone-600 dark:text-stone-300 block">Finder&apos;s Solana Address</label>
+                    <div className="relative">
+                      <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500">account_balance_wallet</span>
+                      <input
+                        className="block w-full pl-12 pr-4 py-3 bg-[#faf2ea] dark:bg-stone-950 border-transparent rounded-xl focus:ring-2 focus:ring-[#48a9a6] focus:border-[#48a9a6] focus:bg-white dark:focus:bg-stone-800 text-[#1e1b17] dark:text-stone-100 placeholder:text-stone-400 dark:placeholder-stone-500 transition-all font-mono text-sm outline-none"
+                        placeholder="e.g. AjNXABj8D2GHZY8Bf..."
+                        value={finderAddress}
+                        onChange={(e) => setFinderAddress(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-[#e8e1d9] dark:border-stone-800">
+              <button
+                onClick={() => setShowFoundModal(false)}
+                className="px-6 py-3 text-stone-600 dark:text-stone-300 font-semibold hover:bg-stone-50 dark:hover:bg-stone-800 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleMarkFound}
+                disabled={markingFound || (!foundMyself && !!bountyData && !finderAddress)}
+                className="px-6 py-3 bg-[#137333] hover:bg-[#0d5a27] text-white font-semibold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50"
+              >
+                {markingFound ? foundStage || 'Processing...' : 'Confirm Recovery'}
+                {!markingFound && <span className="material-symbols-outlined text-[18px]">check</span>}
               </button>
             </div>
           </div>

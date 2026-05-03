@@ -28,7 +28,7 @@ export default function Sidebar() {
             B
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#48A9A6] dark:text-[#5BC4C1]">Bushi</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-[#48A9A6] dark:text-[#5BC4C1]">VaultID</h1>
             <p className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest">Secure Fintech</p>
           </div>
         </div>

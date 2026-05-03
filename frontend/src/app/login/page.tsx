@@ -27,7 +27,7 @@ export default function Login() {
         <header className="w-full max-w-screen-xl mx-auto px-6 py-12 flex flex-col items-center text-center">
           <div className="flex items-center gap-2 mb-3">
             <span className="material-symbols-outlined text-[#48a9a6] dark:text-[#5BC4C1] text-4xl">shield</span>
-            <h1 className="text-[#48a9a6] dark:text-[#5BC4C1] text-3xl font-bold tracking-tight">Bushi</h1>
+            <h1 className="text-[#48a9a6] dark:text-[#5BC4C1] text-3xl font-bold tracking-tight">VaultID</h1>
           </div>
           <p className="text-[#5e5e5c] dark:text-stone-400 max-w-xs leading-relaxed">
             Bank-grade encryption for your physical devices.
@@ -71,7 +71,7 @@ export default function Login() {
             <span className="text-2xl font-bold text-[#48A9A6] dark:text-[#5BC4C1]">B</span>
           </div>
 
-          <h1 className="text-2xl font-bold text-[#1e1b17] dark:text-stone-100 mb-2">Welcome to Bushi</h1>
+          <h1 className="text-2xl font-bold text-[#1e1b17] dark:text-stone-100 mb-2">Welcome to VaultID</h1>
           <p className="text-stone-500 dark:text-stone-400 mb-8">Bank-grade encryption for your<br />physical devices.</p>
 
           {/* Google Button */}
@@ -103,7 +103,7 @@ export default function Login() {
 
           {/* Terms */}
           <p className="text-stone-400 dark:text-stone-500 text-xs mt-6 leading-relaxed">
-            By continuing, you agree to Bushi&apos;s <a className="text-[#48a9a6] dark:text-[#5BC4C1] hover:underline" href="#">Terms of Service</a> and <a className="text-[#48a9a6] dark:text-[#5BC4C1] hover:underline" href="#">Privacy Policy</a>.
+            By continuing, you agree to VaultID&apos;s <a className="text-[#48a9a6] dark:text-[#5BC4C1] hover:underline" href="#">Terms of Service</a> and <a className="text-[#48a9a6] dark:text-[#5BC4C1] hover:underline" href="#">Privacy Policy</a>.
           </p>
         </div>
       </div>

@@ -78,7 +78,7 @@ export default function Home() {
         <div className="flex items-center gap-4 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer rounded-full p-2 -ml-2">
           <span className="material-symbols-outlined text-[#48A9A6] dark:text-[#5BC4C1]">menu</span>
         </div>
-        <div className="text-2xl font-bold tracking-tight text-[#48A9A6] dark:text-[#5BC4C1]">Bushi</div>
+        <div className="text-2xl font-bold tracking-tight text-[#48A9A6] dark:text-[#5BC4C1]">VaultID</div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <div className="flex items-center hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer rounded-full p-1 -mr-1" onClick={logout}>
@@ -128,7 +128,7 @@ export default function Home() {
             </div>
             <div>
               <h3 className="text-xl font-semibold text-[#1e1b17] dark:text-stone-100 mb-1 group-hover:text-[#006a68] dark:group-hover:text-[#5BC4C1] transition-colors">Register Device</h3>
-              <p className="text-stone-500 dark:text-stone-400">Add a new device to your secure Bushi network.</p>
+              <p className="text-stone-500 dark:text-stone-400">Add a new device to your secure VaultID network.</p>
             </div>
           </Link>
           <Link href="/report" className="hidden md:flex group bg-white dark:bg-stone-900 rounded-xl p-6 shadow-sm border border-[#e8e1d9] dark:border-stone-800 hover:shadow-md transition-all duration-300 flex-col items-start gap-4">
@@ -167,7 +167,7 @@ export default function Home() {
                   <thead>
                     <tr className="bg-[#faf2ea] dark:bg-stone-950/50 border-b border-[#e8e1d9] dark:border-stone-800">
                       <th className="py-4 px-6 text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Device Model</th>
-                      <th className="py-4 px-6 text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Bushi ID</th>
+                      <th className="py-4 px-6 text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">VaultID</th>
                       <th className="py-4 px-6 text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Status</th>
                       <th className="py-4 px-6 text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider text-right">Actions</th>
                     </tr>
@@ -178,7 +178,7 @@ export default function Home() {
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-3">
                             <span className="material-symbols-outlined text-stone-400 dark:text-stone-500">smartphone</span>
-                            <span className="font-semibold text-[#1e1b17] dark:text-stone-200">Bushi Device</span>
+                            <span className="font-semibold text-[#1e1b17] dark:text-stone-200">VaultID Device</span>
                           </div>
                         </td>
                         <td className="py-4 px-6 text-stone-500 dark:text-stone-400 font-mono text-sm">{getBushiId(device)}</td>
@@ -213,7 +213,7 @@ export default function Home() {
                         <span className="material-symbols-outlined text-2xl">smartphone</span>
                       </div>
                       <div className="flex flex-col">
-                        <span className={`font-semibold ${device.account.isStolen ? 'text-red-600 dark:text-red-400' : 'text-gray-800 dark:text-stone-200'}`}>Bushi Device</span>
+                        <span className={`font-semibold ${device.account.isStolen ? 'text-red-600 dark:text-red-400' : 'text-gray-800 dark:text-stone-200'}`}>VaultID Device</span>
                         <span className="text-sm text-gray-500 dark:text-stone-400">
                           {device.account.isStolen ? `Stolen • ${device.account.recoveryContact || 'No contact'}` : 'Active and protected'}
                         </span>

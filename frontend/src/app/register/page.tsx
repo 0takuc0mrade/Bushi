@@ -55,7 +55,7 @@ export default function Register() {
       // Check if device is already registered
       const deviceCheck = await fetchDeviceByImei(program, imei);
       if (deviceCheck.exists) {
-        alert('This device (IMEI) is already registered on Bushi.');
+        alert('This device (IMEI) is already registered on VaultID.');
         setLoading(false);
         return;
       }
@@ -94,7 +94,7 @@ export default function Register() {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <div className="text-xl font-bold text-[#48A9A6] dark:text-[#5BC4C1]">Bushi</div>
+            <div className="text-xl font-bold text-[#48A9A6] dark:text-[#5BC4C1]">VaultID</div>
           </div>
         </div>
       </header>
@@ -142,7 +142,7 @@ export default function Register() {
                   </div>
                 </div>
                 <h2 className="text-2xl font-semibold text-[#1e1b17] mb-1">Protect Your Device</h2>
-                <p className="text-stone-500 px-4">Secure your assets by linking your physical hardware to your Bushi account.</p>
+                <p className="text-stone-500 px-4">Secure your assets by linking your physical hardware to your VaultID account.</p>
               </div>
 
               <div className="space-y-1">
@@ -207,7 +207,7 @@ export default function Register() {
         <div className="hidden md:flex items-start gap-4 bg-[#faf2ea] dark:bg-stone-900 rounded-xl border border-[#e8e1d9] dark:border-stone-800 p-6 mt-8 transition-colors">
           <span className="material-symbols-outlined text-[#48A9A6] dark:text-[#5BC4C1] shrink-0">info</span>
           <p className="text-stone-600 dark:text-stone-400">
-            Registering your device binds it to your Bushi account. If lost or stolen, you can instantly lock access to your financial data from any web browser.
+            Registering your device binds it to your VaultID account. If lost or stolen, you can instantly lock access to your financial data from any web browser.
           </p>
         </div>
 
@@ -218,7 +218,7 @@ export default function Register() {
             <span className="font-semibold text-sm text-[#006a68]">Bank-Grade Encryption</span>
           </div>
           <p className="text-[12px] text-stone-500 leading-relaxed">
-            Your IMEI is hashed and encrypted for your security. Bushi never stores plain-text hardware identifiers.
+            Your IMEI is hashed and encrypted for your security. VaultID never stores plain-text hardware identifiers.
           </p>
         </div>
       </div>

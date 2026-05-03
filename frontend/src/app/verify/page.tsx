@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import ThemeToggle from '../components/ThemeToggle';
+import { hashImei } from '@/lib/bushiClient';
 
 export default function VerifyDevice() {
   const [imei, setImei] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [searched, setSearched] = useState(false);
+  const [bountyData, setBountyData] = useState<{ amount: number; currency: string } | null>(null);
 
   const handleVerify = async () => {
     if (imei.length !== 15) return;
@@ -29,6 +31,15 @@ export default function VerifyDevice() {
           },
           pda: data.pda
         });
+        // Load bounty from localStorage
+        const hashedImeiArr = hashImei(imei);
+        const bountyKey = `bounty_${hashedImeiArr.slice(0, 8).join('')}`;
+        const stored = localStorage.getItem(bountyKey);
+        if (stored) {
+          try { setBountyData(JSON.parse(stored)); } catch {}
+        } else {
+          setBountyData(null);
+        }
       } else {
         setResult({ exists: false, data: null, pda: null });
       }
@@ -54,7 +65,7 @@ export default function VerifyDevice() {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <div className="text-xl font-bold text-[#48A9A6] dark:text-[#5BC4C1]">Bushi</div>
+            <div className="text-xl font-bold text-[#48A9A6] dark:text-[#5BC4C1]">VaultID</div>
           </div>
         </div>
       </header>
@@ -65,7 +76,7 @@ export default function VerifyDevice() {
           <div className="w-8 h-8 rounded-md bg-[#48A9A6] flex items-center justify-center">
             <span className="material-symbols-outlined text-white text-[18px]">verified_user</span>
           </div>
-          <span className="text-xl font-bold text-[#48A9A6] dark:text-[#5BC4C1]">Bushi</span>
+          <span className="text-xl font-bold text-[#48A9A6] dark:text-[#5BC4C1]">VaultID</span>
           <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 border border-stone-300 dark:border-stone-700 rounded-full px-3 py-1 ml-2">Public Verification Portal</span>
         </div>
         <div className="flex items-center gap-6">
@@ -157,8 +168,17 @@ export default function VerifyDevice() {
                     <div className="md:col-span-2 bg-white dark:bg-stone-900 rounded-xl border border-[#e8e1d9] dark:border-stone-800 p-6 flex flex-col items-center justify-center text-center gap-3 transition-colors">
                       <span className="material-symbols-outlined text-[#48A9A6] dark:text-[#5BC4C1] text-[36px]">monetization_on</span>
                       <p className="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Active Bounty</p>
-                      <p className="text-4xl font-bold text-[#1e1b17] dark:text-stone-100">$50 <span className="text-lg font-normal text-stone-400">USDC</span></p>
-                      <p className="text-sm text-stone-500 dark:text-stone-400">Reward offered for information leading to recovery.</p>
+                      {bountyData ? (
+                        <>
+                          <p className="text-4xl font-bold text-[#1e1b17] dark:text-stone-100">${bountyData.amount} <span className="text-lg font-normal text-stone-400">{bountyData.currency}</span></p>
+                          <p className="text-sm text-stone-500 dark:text-stone-400">Reward offered for information leading to recovery.</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-2xl font-bold text-stone-300 dark:text-stone-600">No Bounty</p>
+                          <p className="text-sm text-stone-500 dark:text-stone-400">The owner has not set a recovery bounty for this device.</p>
+                        </>
+                      )}
                       <button className="mt-2 border border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-300 font-semibold px-6 py-2 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors text-sm">
                         Claim Details
                       </button>
@@ -181,7 +201,7 @@ export default function VerifyDevice() {
                   </div>
                   <div className="bg-white dark:bg-stone-900 rounded-xl border border-[#e8e1d9] dark:border-stone-800 p-4 transition-colors">
                     <p className="text-xs font-semibold text-stone-400 uppercase mb-1">Device Model</p>
-                    <p className="text-sm font-semibold text-[#1e1b17] dark:text-stone-200">Bushi Device</p>
+                    <p className="text-sm font-semibold text-[#1e1b17] dark:text-stone-200">VaultID Device</p>
                   </div>
                   <div className="bg-white dark:bg-stone-900 rounded-xl border border-[#e8e1d9] dark:border-stone-800 p-4 transition-colors">
                     <p className="text-xs font-semibold text-stone-400 uppercase mb-1">Owner</p>
@@ -198,7 +218,7 @@ export default function VerifyDevice() {
               <div className="text-center bg-white dark:bg-stone-900 rounded-xl border border-[#e8e1d9] dark:border-stone-800 shadow-sm p-10 transition-colors">
                 <span className="material-symbols-outlined text-5xl text-stone-300 dark:text-stone-600 mb-4 block">device_unknown</span>
                 <h3 className="text-xl font-semibold text-[#1e1b17] dark:text-stone-100 mb-2">Device Not Found</h3>
-                <p className="text-stone-500 dark:text-stone-400">This IMEI is not registered on the Bushi network. The device may not be protected yet.</p>
+                <p className="text-stone-500 dark:text-stone-400">This IMEI is not registered on the VaultID network. The device may not be protected yet.</p>
               </div>
             )}
           </>
