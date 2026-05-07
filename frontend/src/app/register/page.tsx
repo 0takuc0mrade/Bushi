@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useMemo } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { useWallets } from '@privy-io/react-auth/solana';
@@ -94,7 +95,10 @@ export default function Register() {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <div className="text-xl font-bold text-[#48A9A6] dark:text-[#5BC4C1]">VaultID</div>
+            <div className="flex items-center gap-2">
+              <Image src="/logo.png" alt="VaultID" width={28} height={28} className="rounded-full" />
+              <span className="text-xl font-bold text-[#48A9A6] dark:text-[#5BC4C1]">VaultID</span>
+            </div>
           </div>
         </div>
       </header>

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { usePrivy } from '@privy-io/react-auth';
 import ThemeToggle from './ThemeToggle';
@@ -24,9 +25,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="mb-8 px-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-[#48A9A6] flex items-center justify-center text-white font-bold text-lg shrink-0">
-            B
-          </div>
+          <Image src="/logo.png" alt="VaultID" width={40} height={40} className="rounded-full shrink-0" />
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#48A9A6] dark:text-[#5BC4C1]">VaultID</h1>
             <p className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest">Secure Fintech</p>

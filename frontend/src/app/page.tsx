@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePrivy } from '@privy-io/react-auth';
 import { useEffect, useState, useMemo } from 'react';
 import { Connection, PublicKey } from '@solana/web3.js';
@@ -78,7 +79,10 @@ export default function Home() {
         <div className="flex items-center gap-4 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer rounded-full p-2 -ml-2">
           <span className="material-symbols-outlined text-[#48A9A6] dark:text-[#5BC4C1]">menu</span>
         </div>
-        <div className="text-2xl font-bold tracking-tight text-[#48A9A6] dark:text-[#5BC4C1]">VaultID</div>
+        <div className="flex items-center gap-2">
+          <Image src="/logo.png" alt="VaultID" width={28} height={28} className="rounded-full" />
+          <span className="text-xl font-bold tracking-tight text-[#48A9A6] dark:text-[#5BC4C1]">VaultID</span>
+        </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <div className="flex items-center hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer rounded-full p-1 -mr-1" onClick={logout}>

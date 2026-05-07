@@ -3,6 +3,7 @@
 import { usePrivy } from '@privy-io/react-auth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import Image from 'next/image';
 
 export default function Login() {
   const { login, ready, authenticated } = usePrivy();
@@ -25,8 +26,8 @@ export default function Login() {
       {/* ===== MOBILE LAYOUT ===== */}
       <div className="md:hidden flex flex-col items-center justify-between min-h-screen w-full">
         <header className="w-full max-w-screen-xl mx-auto px-6 py-12 flex flex-col items-center text-center">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="material-symbols-outlined text-[#48a9a6] dark:text-[#5BC4C1] text-4xl">shield</span>
+          <div className="flex items-center gap-3 mb-3">
+            <Image src="/logo.png" alt="VaultID" width={44} height={44} className="rounded-full" />
             <h1 className="text-[#48a9a6] dark:text-[#5BC4C1] text-3xl font-bold tracking-tight">VaultID</h1>
           </div>
           <p className="text-[#5e5e5c] dark:text-stone-400 max-w-xs leading-relaxed">
@@ -38,7 +39,7 @@ export default function Login() {
           <div className="relative w-full aspect-square max-w-[320px] mb-10">
             <div className="absolute inset-0 bg-[#48a9a6]/10 blur-3xl rounded-full scale-110"></div>
             <div className="relative bg-white dark:bg-stone-900 rounded-[40px] shadow-xl shadow-[#5e5e5c]/5 dark:shadow-none p-8 flex flex-col items-center justify-center overflow-hidden h-full border border-[#f4ede5] dark:border-stone-800">
-              <span className="material-symbols-outlined text-[120px] text-[#48A9A6] dark:text-[#5BC4C1]">shield</span>
+              <Image src="/logo.png" alt="VaultID" width={160} height={160} className="rounded-2xl" />
             </div>
           </div>
           <div className="space-y-3 mb-16">
@@ -67,8 +68,8 @@ export default function Login() {
       <div className="hidden md:flex items-center justify-center w-full">
         <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-xl shadow-stone-200/50 dark:shadow-none border border-[#f4ede5] dark:border-stone-800 p-10 w-full max-w-md text-center">
           {/* Logo */}
-          <div className="w-16 h-16 rounded-full bg-[#48A9A6]/10 dark:bg-[#5BC4C1]/10 flex items-center justify-center mx-auto mb-6">
-            <span className="text-2xl font-bold text-[#48A9A6] dark:text-[#5BC4C1]">B</span>
+          <div className="flex justify-center mb-6">
+            <Image src="/logo.png" alt="VaultID" width={64} height={64} className="rounded-full" />
           </div>
 
           <h1 className="text-2xl font-bold text-[#1e1b17] dark:text-stone-100 mb-2">Welcome to VaultID</h1>
