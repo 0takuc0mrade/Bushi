@@ -1,60 +1,63 @@
 <div align="center">
-  <img src="./frontend/public/file.svg" alt="Bushi Logo" width="80" />
-  <h1>Bushi</h1>
-  <p><strong>Bank-grade encryption for your physical devices.</strong></p>
-  <p>Protect, track, and transfer hardware ownership using the Solana blockchain.</p>
+  <img src="./frontend/public/file.svg" alt="VaultID Logo" width="80" />
+  <h1>VaultID</h1>
+  <p><strong>Secure Your Device. Defeat the Black Market.</strong></p>
+  <p>Moving from reactive tracking to proactive economic denial using the Solana blockchain.</p>
 </div>
 
 ---
 
 ## 🛡️ Overview
 
-**Bushi** is a decentralized application designed to cryptographically bind physical assets (like smartphones and laptops) to digital identities. By hashing a device's unique identifier (such as an IMEI number) and storing it on-chain, Bushi prevents device theft, establishes verifiable provenance, and allows seamless peer-to-peer ownership transfers.
+**VaultID** is a decentralized application designed to cryptographically bind physical assets (like smartphones and laptops) to digital identities. By hashing a device's unique identifier (such as an IMEI number) and storing it on-chain, VaultID prevents device theft by making it economically unviable for the black market to fence stolen goods.
 
-When a device is reported stolen on Bushi, its on-chain status is updated instantly, rendering it useless to thieves and preventing it from being resold on secondary markets.
+When a device is reported stolen on VaultID, its on-chain status is updated instantly. VaultID turns secondary market vendors into bounty hunters by offering a trustless, automated financial payout for returning the device, effectively outbidding the black market.
 
 ### Key Features
-- **Mint Device Cores:** Securely register your device by creating a non-transferable cryptographic core (powered by Metaplex Core) linked to a one-way hash of your IMEI.
-- **Emergency Lockdown:** Instantly report your device as stolen. This updates the on-chain PDA (Program Derived Address), immediately halting any transferability and warning potential buyers.
-- **Ownership Transfers:** Cryptographically transfer your device to a new buyer. Ownership history is transparent and immutable.
-- **Public Verification Portal:** Buyers can verify the status of a device *before* purchasing it via an intuitive, rate-limited public portal.
-- **Responsive Dark Mode UI:** A gorgeous, density-optimized frontend that works perfectly on both mobile devices (for scanning in the field) and desktop dashboards (for vendors managing inventory).
+- **Mint Device Cores:** Securely register your device by creating a non-transferable cryptographic core (powered by Metaplex Core) linked to a one-way hash of your IMEI for less than a cent.
+- **Emergency Lockdown:** Instantly report your device as stolen to update the on-chain PDA, halting transferability and transferring salvage rights.
+- **Trustless Bounty Escrows:** When a device is reported stolen, owners fund a trustless SOL bounty. Vendors who scan the IMEI can return the device via the owner's recovery email to claim the payout.
+- **Cross-Chain Funding via LI.FI:** Users can fund their in-app wallets and bounties using ETH on Base or USDC on Arbitrum with a single click, completely abstracted via the LI.FI widget.
+- **Cryptographic Proof of Loss:** VaultID provides verifiable, immutable proof of loss to smartphone insurance providers, eliminating double-dipping fraud.
+- **Public Vendor Portal:** Buyers and vendors can verify the status of a device *before* purchasing it via an intuitive, rate-limited public portal.
+- **Web2 UX, Web3 Core:** Onboard seamlessly with just an email via Privy—no seed phrases required.
 
 ---
 
 ## 🏗️ Technology Stack
 
-Bushi is built with a modern, high-performance Web3 stack.
+VaultID is built with a modern, high-performance Web3 stack, spanning 11,000+ lines of code shipped in 41 hours.
 
 **Smart Contracts (On-Chain Logic)**
-- **Rust:** Core programming language.
-- **Anchor Framework:** For secure, fast Solana smart contract development.
-- **Solana Devnet:** Current deployment environment.
-- **Metaplex Core:** Next-generation, highly optimized NFT standard for digital assets.
+- **Rust & Anchor Framework:** For secure, fast Solana smart contract development.
+- **Solana Devnet:** Current deployment environment utilizing sub-cent fees.
+- **Metaplex Core:** Highly optimized, stateful NFT standard for digital asset registry.
 
 **Frontend (Client & Vendor Dashboard)**
 - **Next.js (App Router):** React framework for SSR and API routes.
 - **Tailwind CSS v4:** Utility-first styling with comprehensive dark mode support.
-- **Privy:** Seamless onboarding and wallet management (Google, Email, Solana Wallets).
+- **Privy:** Seamless onboarding and in-app wallet management (Email).
+- **LI.FI:** Cross-chain bridging aggregation for seamless liquidity routing.
 - **@coral-xyz/anchor:** Client library for interacting with the Solana program.
 
 ---
 
 ## 🗺️ Roadmap
 
-The current version of Bushi is a fully functional MVP on the Solana Devnet. Here is the path forward:
+The current version of VaultID is a fully functional MVP on the Solana Devnet. Here is the path forward:
 
-### Phase 1: Production Hardening (Current)
+### Phase 1: MVP & Core Loops (Current)
 - [x] Responsive Desktop & Mobile UI
-- [x] Dark Mode System Integration
-- [ ] Migrate from in-memory API rate limiting to **Redis** (Vercel KV) for the Verification Portal.
-- [ ] Transition RPC providers from public Devnet to dedicated Mainnet endpoints (e.g., Helius, QuickNode).
+- [x] Privy Email Onboarding & In-App Wallets
+- [x] Cross-Chain LI.FI Bridge Integration
+- [x] Trustless Bounty Escrow System
+- [ ] Migrate from in-memory API rate limiting to **Redis** (Vercel KV) for the Vendor Portal.
 - [ ] Comprehensive Smart Contract Audit.
 
 ### Phase 2: Advanced Corporate Features
+- **Fiat On-Ramp Integration:** Seamlessly support local fiat currencies (e.g., Naira) for true mass-market Web2 adoption.
 - **Multisig Vendor Accounts:** Allow corporations and retail stores to manage massive fleets of devices using SPL Governance or Squads.
 - **Batch Minting:** Optimized instructions for registering thousands of devices in a single transaction.
-- **Bounty System:** Smart contracts that escrow USDC rewards for individuals who return devices marked as stolen.
 
 ### Phase 3: Ecosystem Expansion
 - **Mobile Application:** A native mobile wrapper (React Native / Expo) that auto-reads device IMEIs securely.
@@ -64,7 +67,7 @@ The current version of Bushi is a fully functional MVP on the Solana Devnet. Her
 
 ## 👨‍💻 Developer Guide
 
-Want to contribute to Bushi? Here is how to set up your local environment.
+Want to contribute to VaultID? Here is how to set up your local environment.
 
 ### Prerequisites
 Ensure you have the following installed on your machine:
@@ -75,8 +78,8 @@ Ensure you have the following installed on your machine:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/0takuc0mrade/Bushi.git
-cd Bushi
+git clone https://github.com/0takuc0mrade/VaultID.git
+cd VaultID
 ```
 
 ### 2. Smart Contract Setup (`anchor/bushi/`)
@@ -130,5 +133,5 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ---
 
 <div align="center">
-  <i>Built with ❤️ for a more secure world.</i>
+  <i>Built with ❤️ to defeat the black market.</i>
 </div>
